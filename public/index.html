@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Knapsack Problem Solver</title>
+    <link rel="icon" type="image/x-icon" href="image/logo.png" />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div class="overlay">
+      <div class="container">
+        <h1>Knapsack Problem Solver</h1>
+        <form id="knapsack-form">
+          <label for="weights">Enter Weights (comma-separated):</label>
+          <input
+            type="text"
+            id="weights"
+            placeholder="e.g. 10,20,30"
+            required
+          />
+
+          <label for="values">Enter Values (comma-separated):</label>
+          <input
+            type="text"
+            id="values"
+            placeholder="e.g. 60,100,120"
+            required
+          />
+
+          <label for="capacity">Enter Capacity:</label>
+          <input type="number" id="capacity" placeholder="e.g. 50" required />
+
+          <button type="button" id="solve-btn">Solve Knapsack</button>
+        </form>
+
+        <div id="result" class="result"></div>
+      </div>
+    </div>
+
+    <script>
+      document
+        .getElementById("solve-btn")
+        .addEventListener("click", async function () {
+          const weights = document
+            .getElementById("weights")
+            .value.split(",")
+            .map(Number);
+          const values = document
+            .getElementById("values")
+            .value.split(",")
+            .map(Number);
+          const capacity = Number(document.getElementById("capacity").value);
+
+          if (weights.length !== values.length) {
+            alert("Weights and values must be of the same length!");
+            return;
+          }
+
+          const response = await fetch("/solve", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ weights, values, capacity }),
+          });
+
+          if (response.ok) {
+            const data = await response.json();
+
+            const resultDiv = document.getElementById("result");
+            resultDiv.innerHTML = `<p><strong>Weights:</strong> ${weights.join(
+              ", "
+            )}</p>
+                                   <p><strong>Values:</strong> ${values.join(
+                                     ", "
+                                   )}</p>
+                                   <p><strong>Capacity:</strong> ${capacity}</p>
+                                   <p style="font-size: 1.2em; font-weight: bold;">
+                                    <strong>Max Value:</strong> ${
+                                      data.result
+                                    }</p>`;
+          } else {
+            const errorData = await response.json();
+            const resultDiv = document.getElementById("result");
+            resultDiv.innerHTML = `<p>Error: ${errorData.error}</p>`;
+          }
+        });
+    </script>
+  </body>
+</html>
