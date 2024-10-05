@@ -1,11 +1,14 @@
 const express = require("express");
 const path = require("path");
+const cors = require("cors");
+const { body, validationResult } = require("express-validator");
 const app = express();
-const PORT = 3000;
+require("dotenv").config();
+const PORT = process.env.PORT || 3000;
 
+app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-
 app.use(express.static(path.join(__dirname, "public")));
 
 app.get("/", (req, res) => {
@@ -30,55 +33,62 @@ const knapsack = (weights, values, capacity) => {
       }
     }
   }
-
   return dp[n][capacity];
 };
 
-app.post("/solve", (req, res) => {
-  const { weights, values, capacity } = req.body;
+app.post(
+  "/solve",
+  [
+    body("weights").isArray().withMessage("Weights must be an array"),
+    body("values").isArray().withMessage("Values must be an array"),
+    body("capacity").isNumeric().withMessage("Capacity must be a number"),
+  ],
+  (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+    const { weights, values, capacity } = req.body;
 
-  if (
-    !Array.isArray(weights) ||
-    !Array.isArray(values) ||
-    typeof capacity !== "number"
-  ) {
-    return res.status(400).json({
-      error:
-        "Invalid input format. Please provide arrays for weights and values, and a number for capacity.",
-    });
-  }
+    if (
+      !Array.isArray(weights) ||
+      !Array.isArray(values) ||
+      typeof capacity !== "number"
+    ) {
+      return res.status(400).json({
+        error:
+          "Invalid input format. Please provide arrays for weights and values, and a number for capacity.",
+      });
+    }
 
-  if (weights.length !== values.length) {
-    return res
-      .status(400)
-      .json({ error: "Weights and values must have the same length." });
-  }
+    if (weights.length !== values.length) {
+      return res
+        .status(400)
+        .json({ error: "Weights and values must have the same length." });
+    }
 
-  for (let weight of weights) {
-    if (typeof weight !== "number" || weight < 0) {
+    if (weights.some((weight) => typeof weight !== "number" || weight < 0)) {
       return res
         .status(400)
         .json({ error: "Weights must be non-negative numbers." });
     }
-  }
 
-  for (let value of values) {
-    if (typeof value !== "number" || value < 0) {
+    if (values.some((value) => typeof value !== "number" || value < 0)) {
       return res
         .status(400)
         .json({ error: "Values must be non-negative numbers." });
     }
-  }
 
-  if (capacity < 0) {
-    return res
-      .status(400)
-      .json({ error: "Capacity must be a non-negative number." });
-  }
+    if (capacity < 0) {
+      return res
+        .status(400)
+        .json({ error: "Capacity must be a non-negative number." });
+    }
 
-  const result = knapsack(weights, values, capacity);
-  res.json({ result });
-});
+    const result = knapsack(weights, values, capacity);
+    res.json({ result });
+  }
+);
 
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
