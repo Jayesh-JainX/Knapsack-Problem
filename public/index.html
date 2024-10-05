@@ -29,9 +29,16 @@
           />
 
           <label for="capacity">Enter Capacity:</label>
-          <input type="number" id="capacity" placeholder="e.g. 50" required />
+          <input
+            type="number"
+            id="capacity"
+            placeholder="e.g. 50"
+            required
+            min="0"
+          />
 
           <button type="button" id="solve-btn">Solve Knapsack</button>
+          <div id="message" class="message"></div>
         </form>
 
         <div id="result" class="result"></div>
@@ -42,50 +49,119 @@
       document
         .getElementById("solve-btn")
         .addEventListener("click", async function () {
-          const weights = document
-            .getElementById("weights")
-            .value.split(",")
-            .map(Number);
-          const values = document
-            .getElementById("values")
-            .value.split(",")
-            .map(Number);
-          const capacity = Number(document.getElementById("capacity").value);
+          const weightsInput = document.getElementById("weights").value;
+          const valuesInput = document.getElementById("values").value;
+          const capacityInput = document.getElementById("capacity").value;
 
-          if (weights.length !== values.length) {
-            alert("Weights and values must be of the same length!");
+          const weights = weightsInput
+            .split(",")
+            .map((w) => parseFloat(w.trim()));
+          const values = valuesInput
+            .split(",")
+            .map((v) => parseFloat(v.trim()));
+          const capacity = parseFloat(capacityInput);
+
+          const messageDiv = document.getElementById("message");
+          messageDiv.innerHTML = "";
+
+          if (
+            !validateInputs(
+              weightsInput,
+              valuesInput,
+              capacityInput,
+              weights,
+              values,
+              capacity,
+              messageDiv
+            )
+          ) {
             return;
           }
 
           const response = await fetch("/solve", {
             method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ weights, values, capacity }),
           });
 
+          const resultDiv = document.getElementById("result");
           if (response.ok) {
             const data = await response.json();
-
-            const resultDiv = document.getElementById("result");
             resultDiv.innerHTML = `<p><strong>Weights:</strong> ${weights.join(
               ", "
             )}</p>
-                                   <p><strong>Values:</strong> ${values.join(
-                                     ", "
-                                   )}</p>
-                                   <p><strong>Capacity:</strong> ${capacity}</p>
-                                   <p style="font-size: 1.2em; font-weight: bold;">
-                                    <strong>Max Value:</strong> ${
-                                      data.result
-                                    }</p>`;
+                                       <p><strong>Values:</strong> ${values.join(
+                                         ", "
+                                       )}</p>
+                                       <p><strong>Capacity:</strong> ${capacity}</p>
+                                       <p style="font-size: 1.2em; font-weight: bold;">
+                                        <strong>Max Value:</strong> ${
+                                          data.result
+                                        }</p>`;
           } else {
             const errorData = await response.json();
-            const resultDiv = document.getElementById("result");
             resultDiv.innerHTML = `<p>Error: ${errorData.error}</p>`;
           }
         });
+
+      function validateInputs(
+        weightsInput,
+        valuesInput,
+        capacityInput,
+        weights,
+        values,
+        capacity,
+        messageDiv
+      ) {
+        if (
+          weightsInput.trim() === "" &&
+          valuesInput.trim() === "" &&
+          capacityInput.trim() === ""
+        ) {
+          messageDiv.innerHTML = "Fields cannot be empty.";
+          return false;
+        }
+
+        if (weightsInput.trim() === "") {
+          messageDiv.innerHTML = "Weights cannot be empty.";
+          return false;
+        }
+        if (valuesInput.trim() === "") {
+          messageDiv.innerHTML = "Values cannot be empty.";
+          return false;
+        }
+        if (capacityInput.trim() === "") {
+          messageDiv.innerHTML = "Capacity cannot be empty.";
+          return false;
+        }
+
+        if (weights.length !== values.length) {
+          messageDiv.innerHTML =
+            "Weights and values must be of the same length!";
+          return false;
+        }
+
+        for (let weight of weights) {
+          if (isNaN(weight) || weight < 0) {
+            messageDiv.innerHTML = "Weights must be non-negative numbers.";
+            return false;
+          }
+        }
+
+        for (let value of values) {
+          if (isNaN(value) || value < 0) {
+            messageDiv.innerHTML = "Values must be non-negative numbers.";
+            return false;
+          }
+        }
+
+        if (isNaN(capacity) || capacity < 0) {
+          messageDiv.innerHTML = "Capacity must be a non-negative number.";
+          return false;
+        }
+
+        return true;
+      }
     </script>
   </body>
 </html>

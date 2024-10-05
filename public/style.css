@@ -24,7 +24,8 @@ body {
 }
 
 .container {
-  max-width: 600px;
+  max-width: 35%;
+  width: 90%;
   padding: 20px;
   background: #fff;
   border-radius: 10px;
@@ -67,6 +68,11 @@ button {
 
 button:hover {
   background-color: #218838;
+}
+
+.message {
+  color: red;
+  margin-top: 10px;
 }
 
 .result {
