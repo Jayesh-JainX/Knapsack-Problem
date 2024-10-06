@@ -17,7 +17,7 @@ Imagine you have the following items:
 | Item 3 | 3 kg   | $40   |
 | Item 4 | 5 kg   | $30   |
 
-If your knapsack can hold 6 kg, the optimal selection would be Item 2 and Item 3, providing a total value of $55 while staying within the weight limit.
+If your knapsack can hold 5 kg, the optimal selection would be Item 2 and Item 3, providing a total value of $55 while staying within the weight limit.
 
 ## Features
 
@@ -42,13 +42,21 @@ To get started with the Knapsack website, follow these steps:
    ```
 2. **Install dependencies:**
    ```bash
-   npm install express body-parser
+   npm install
    ```
-3. Start the server:
+3. **Create a _.env_ file:**
+
+   In the root directory of the project, create a file named `.env` and add the following line to set the port:
+
+   ```bash
+   PORT=3000
+   ```
+
+4. Start the server:
    ```bash
    node index.js
    ```
-4. Open your browser: Navigate to `http://localhost:3000` to view the website.
+5. Open your browser: Navigate to `http://localhost:3000` to view the website.
 
 ## Usage
 
