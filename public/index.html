@@ -37,6 +37,18 @@
             min="0"
           />
 
+          <fieldset>
+            <legend>&nbsp; Select Method &nbsp;</legend>
+            <label>
+              <input type="radio" name="method" value="dynamic" checked />
+              Dynamic
+            </label>
+            <label>
+              <input type="radio" name="method" value="greedy" />
+              Greedy
+            </label>
+          </fieldset>
+
           <button type="button" id="solve-btn">Solve Knapsack</button>
           <div id="message" class="message"></div>
         </form>
@@ -52,6 +64,9 @@
           const weightsInput = document.getElementById("weights").value;
           const valuesInput = document.getElementById("values").value;
           const capacityInput = document.getElementById("capacity").value;
+          const method = document.querySelector(
+            'input[name="method"]:checked'
+          ).value;
 
           const weights = weightsInput
             .split(",")
@@ -81,27 +96,23 @@
           const response = await fetch("/solve", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ weights, values, capacity }),
+            body: JSON.stringify({ weights, values, capacity, method }),
           });
 
           const resultDiv = document.getElementById("result");
           if (response.ok) {
             const data = await response.json();
-            resultDiv.innerHTML = `<p><strong>Weights:</strong> ${weights.join(
-              ", "
-            )}</p>
-                                       <p><strong>Values:</strong> ${values.join(
-                                         ", "
-                                       )}</p>
-                                       <p><strong>Capacity:</strong> ${capacity}</p>
-                                       <p style="font-size: 1.2em; font-weight: bold;">
-                                        <strong>Max Value:</strong> ${
-                                          data.result
-                                        }</p>`;
+            resultDiv.innerHTML = `
+                    <p><strong>Weights:</strong> ${weights.join(", ")}</p>
+                    <p><strong>Values:</strong> ${values.join(", ")}</p>
+                    <p><strong>Capacity:</strong> ${capacity}</p>
+                    <p style="font-size: 1.2em; font-weight: bold;">
+                        <strong>Max Value:</strong> ${data.result}</p>`;
           } else {
             const errorData = await response.json();
             resultDiv.innerHTML = `<p>Error: ${errorData.error}</p>`;
           }
+          resultDiv.style.display = "block";
         });
 
       function validateInputs(
