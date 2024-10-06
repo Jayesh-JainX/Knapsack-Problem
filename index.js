@@ -36,30 +36,46 @@ const knapsack = (weights, values, capacity) => {
   return dp[n][capacity];
 };
 
+const greedyKnapsack = (weights, values, capacity) => {
+  const n = weights.length;
+  const items = Array.from({ length: n }, (_, i) => ({
+    weight: weights[i],
+    value: values[i],
+    ratio: values[i] / weights[i],
+  }));
+
+  items.sort((a, b) => b.ratio - a.ratio);
+
+  let totalValue = 0;
+  for (let item of items) {
+    if (capacity >= item.weight) {
+      capacity -= item.weight;
+      totalValue += item.value;
+    } else {
+      totalValue += item.value * (capacity / item.weight);
+      break;
+    }
+  }
+  return totalValue;
+};
+
 app.post(
   "/solve",
   [
     body("weights").isArray().withMessage("Weights must be an array"),
     body("values").isArray().withMessage("Values must be an array"),
     body("capacity").isNumeric().withMessage("Capacity must be a number"),
+    body("method")
+      .isIn(["dynamic", "greedy"])
+      .withMessage("Method must be either 'dynamic' or 'greedy'"),
   ],
   (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.status(400).json({ errors: errors.array() });
     }
-    const { weights, values, capacity } = req.body;
 
-    if (
-      !Array.isArray(weights) ||
-      !Array.isArray(values) ||
-      typeof capacity !== "number"
-    ) {
-      return res.status(400).json({
-        error:
-          "Invalid input format. Please provide arrays for weights and values, and a number for capacity.",
-      });
-    }
+    const { weights, values, capacity, method } = req.body;
 
     if (weights.length !== values.length) {
       return res
@@ -85,7 +101,13 @@ app.post(
         .json({ error: "Capacity must be a non-negative number." });
     }
 
-    const result = knapsack(weights, values, capacity);
+    let result;
+    if (method === "dynamic") {
+      result = knapsack(weights, values, capacity);
+    } else if (method === "greedy") {
+      result = greedyKnapsack(weights, values, capacity);
+    }
+
     res.json({ result });
   }
 );
